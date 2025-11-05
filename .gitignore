@@ -1,0 +1,11 @@
+# Diretórios do Visual Studio
+.vs/
+bin/
+obj/
+
+# Outros arquivos comuns a ignorar
+*.user
+*.suo
+*.cache
+*.log
+*.vsidx
