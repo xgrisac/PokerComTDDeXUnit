@@ -1,5 +1,6 @@
 namespace PokerComTDDTests
-
+// 2, 3, 4, 5, 6, 7, 8, 9, 10, Valete, Dama, Rei, Ás.
+// Ouro (D), Copa (H), Espada (S), Paus (C).
 {
     public class AnalisadorDeVencedorTeste // CLASSE RESPONSÁVEL PELOS TESTES PRINCIPAIS
 
@@ -23,11 +24,63 @@ namespace PokerComTDDTests
             Assert.Equal(vencedorEsperado, vencedor);
         }
 
-        internal class AnalisadorDeVencedor
+        [Theory]
+        [InlineData("20,2C,3P,6C,7C", "30,5C,2E,9C,7P", "Primeiro jogador")]
+        [InlineData("30,5C,2E,9C,7P", "20,2C,3P,6C,7C", "Segundo jogador")]
+        [InlineData("D0,DC,2E,9C,7P", "20,2C,3P,6C,7C", "Primeiro jogador")]
+        public void DeveAnalisarVencedorQuandoTiverUmParDeCartasDoMesmoValor(string cartasDoPrimeiroJogadorString, string cartasDoSegundoJogadorString, string vencedorEsperado)
         {
-            // MÉTODO RESPONSÁVEL POR ANALISAR E DEFINIR VENCEDOR
+            // Arrange
+            var cartasDoPrimeiroJogador = cartasDoPrimeiroJogadorString.Split(',').ToList();
+            var cartasDoSegundoJogador = cartasDoSegundoJogadorString.Split(',').ToList();
+            var analisador = new AnalisadorDeVencedor();
+
+            // Act
+            var vencedor = analisador.Analisar(cartasDoPrimeiroJogador, cartasDoSegundoJogador);
+
+            // Assert
+            Assert.Equal(vencedorEsperado, vencedor);
+        }
+
+        public class AnalisadorDeVencedor // CLASSE RESPONSÁVEL POR ANALISAR AS CARTAS
+        {
+            // MÉTODO RESPONSÁVEL POR DEFINIR O VENCEDOR A PARTIR DA ANALISE
             public string Analisar(List<string> cartasDoPrimeiroJogador, List<string> cartasDoSegundoJogador)
             {
+                // PREMISSA PAR DE CARTAS IGUAIS
+
+                var parDeCartasDoPrimeiroJogador = cartasDoPrimeiroJogador
+                    .Select(carta => ConverterParaValorDaCarta(carta))
+                    .GroupBy(valorDaCarta => valorDaCarta) // 'GroupBy' agrupa as cartas por valor, enquanto grupo.Count() >1, filtra o grupo que tem mais de 1 carta
+                    .Where(grupo => grupo.Count() > 1);
+
+                var parDeCartasDoSegundoJogador = cartasDoSegundoJogador
+                    .Select(carta => ConverterParaValorDaCarta(carta))
+                    .GroupBy(valorDaCarta => valorDaCarta)
+                    .Where(grupo => grupo.Count() > 1);
+
+                if (parDeCartasDoPrimeiroJogador != null && parDeCartasDoPrimeiroJogador.Any() && // Verifica se ambos os jogadores têm par de cartas, se sim, entra no IF
+                    parDeCartasDoSegundoJogador != null && parDeCartasDoSegundoJogador.Any())
+                {
+                    var maiorParDeCartasDoPrimeiroJogador = parDeCartasDoPrimeiroJogador
+                        .Select(valor => valor.Key).OrderBy(valor => valor).Max(); // Extrai a chave de cada par, ordena e pega o maior valor
+
+                    var maiorParDeCartasDoSegundoJogador = parDeCartasDoSegundoJogador
+                        .Select(valor => valor.Key).OrderBy(valor => valor).Max();
+
+                    return maiorParDeCartasDoPrimeiroJogador > maiorParDeCartasDoSegundoJogador ? "Primeiro jogador" : "Segundo jogador";
+                }
+
+                // Caso apenas 1 dos jogadores tenha par de cartas, entra nesse else if
+
+                else if (parDeCartasDoPrimeiroJogador != null && parDeCartasDoPrimeiroJogador.Any())
+                    return "Primeiro jogador";
+
+                else if (parDeCartasDoSegundoJogador != null && parDeCartasDoSegundoJogador.Any())
+                    return "Segundo jogador";
+
+                // PREMISSA MAIOR CARTA
+
                 var maiorCartaDoPrimeiroJogador = cartasDoPrimeiroJogador
                     .Select(carta => ConverterParaValorDaCarta(carta)) // 'Select' pega cada ítem da lista. '=>' Lambda indica o que fazer com cada ítem.
                     .OrderBy(ValorDaCarta => ValorDaCarta)
