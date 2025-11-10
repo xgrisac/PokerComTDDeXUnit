@@ -17,6 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PokerComTDD.Api\PokerComTDD.Api.csproj" />
+    <ProjectReference Include="..\PokerComTDDeXUnit\PokerComTDDDomain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
